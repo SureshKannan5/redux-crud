@@ -41,10 +41,16 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Post'],
     }),
-  }),
+    findPost: builder.mutation({
+      query:(id)=>({
+
+      })
+    })
+    }),
 })
 export const {
   useGetPostsQuery,
+  useFindPostMutation,
   useAddNewPostMutation,
   useUpdatePostMutation,
   useDeletePostMutation,
