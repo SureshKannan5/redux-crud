@@ -1,11 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { setupListeners } from '@reduxjs/toolkit/query'
-import { apiSlice } from '../feature/api/apiSlice'
-export const store = configureStore({
+import toDoSlice from '../feature/api/toDoSlice'
+export  const store = configureStore({
   reducer: {
-    [apiSlice.reducerPath]: apiSlice.reducer,
-  },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware),
+    toDoSlice:toDoSlice
+  }
 })
-setupListeners(store.dispatch)

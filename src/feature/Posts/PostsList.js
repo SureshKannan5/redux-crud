@@ -1,115 +1,67 @@
-import React, { useState } from 'react'
-import {
-  useGetPostsQuery,
-  useAddNewPostMutation,
-  useUpdatePostMutation,
-  useDeletePostMutation,
-} from '../api/apiSlice'
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addTodoItem } from "../api/toDoSlice";
 function PostsList() {
-  const [addNewPost, response] = useAddNewPostMutation()
-  const [deletePost] = useDeletePostMutation()
+  const { todoItem } = useSelector((state) => state.toDoSlice);
+  const dispatch = useDispatch();
+
   const [inputField, setInputField] = useState({
-    id: '',
-    title: '',
-    body: '',
-  })
+    title: "",
+    content: "",
+  });
   const inputsHandler = (e) => {
     setInputField((prevState) => ({
       ...prevState,
       [e.target.name]: e.target.value,
-    }))
-  }
-  const [updatePost, { isLoading: isUpdating }] = useUpdatePostMutation()
+    }));
+  };
   const setPostData = (data) => {
     setInputField({
-      id: data.id,
       title: data.title,
-      body: data.body,
-    })
-  }
+      content: data.content,
+    });
+  };
   const onEditData = () => {
-    updatePost({
-      id: inputField.id,
-      title: inputField.title,
-      body: inputField.body,
+
+    const updatedList = todoItem.map((item) => {
+      const clonedData = {...item}
+      if(item.title === inputField.title)
+      {
+        clonedData.title = inputField.title
+        clonedData.content = inputField.content
+      }
+      return clonedData
     })
+    dispatch(addTodoItem(updatedList))
     setInputField(() => ({
-      id: '',
-      title: '',
-      body: '',
-    }))
-  }
+      title: "",
+      content: "",
+    }));
+  };
   const onSubmit = (e) => {
-    e.preventDefault()
-    const { title, body } = e.target.elements
+    e.preventDefault();
+    const { title, content } = e.target.elements;
     setInputField((inputField) => ({
       ...inputField,
       [e.target.name]: e.target.value,
-    }))
+    }));
     let formData = {
       title: title.value,
-      body: body.value,
-    }
-    addNewPost(formData)
-      .unwrap()
-      .then(() => {
-        setInputField(() => ({
-          id: '',
-          title: '',
-          body: '',
-        }))
-      })
-      .then((error) => {
-        console.log(error)
-      })
-  }
-  const {
-    data: posts,
-    isLoading: isGetLoading,
-    isSuccess: isGetSuccess,
-    isError: isGetError,
-    error: getError,
-  } = useGetPostsQuery({ refetchOnMountOrArgChange: true })
-  let postContent
-  if (isGetLoading) {
-    postContent = (
-      <div className="d-flex justify-content-center">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    )
-  } else if (isGetSuccess) {
-    postContent = posts.map((item) => {
-      return (
-        <div className="col-lg-12 mb-3" key={item.id}>
-          <div className="card alert alert-secondary">
-            <div className="card-body">
-              <h5 className="card-title">{item.title}</h5>
-              <p className="card-text">{item.body}</p>
-              <button
-                onClick={() => deletePost(item.id)}
-                className="btn btn-outline-danger me-2"
-              >
-                Remove
-              </button>
-              <button
-                onClick={() => setPostData(item)}
-                className="btn btn-outline-primary"
-              >
-                Edit
-              </button>
-            </div>
-          </div>
-        </div>
-      )
-    })
-  } else if (isGetError) {
-    postContent = (
-      <div className="alert alert-danger" role="alert">
-        {getError}
-      </div>
-    )
+      content: content.value,
+    };
+    const toDoList = [...todoItem, formData];
+    dispatch(addTodoItem(toDoList));
+  };
+
+  const deletePost = (title) => {
+    const index = todoItem.findIndex((item) => item.title === title)
+    const cloneArray = [...todoItem]
+    cloneArray.splice(index)
+    dispatch(addTodoItem(cloneArray))
+    setInputField(() => ({
+      title: "",
+      content: "",
+    }));
   }
   return (
     <div className="row">
@@ -133,11 +85,10 @@ function PostsList() {
               <strong>Enter content</strong>
             </label>
             <textarea
-              value={inputField.body}
+              value={inputField.content}
               className="form-control"
               rows="3"
-              name="body"
-              id="body"
+              name="content"
               onChange={inputsHandler}
             ></textarea>
           </div>
@@ -154,9 +105,33 @@ function PostsList() {
         </form>
       </div>
       <div className="col-lg-8">
-        <div className="row">{postContent}</div>
+        <div className="row">
+
+          {todoItem?.length > 0 && todoItem.map((item) => 
+            <div className="col-lg-12 mb-3" key={item.title}>
+            <div className="card alert alert-secondary">
+              <div className="card-body">
+                <h5 className="card-title">{item.title}</h5>
+                <p className="card-text">{item.content}</p>
+                <button
+                  onClick={() => deletePost(item.title)}
+                  className="btn btn-outline-danger me-2"
+                >
+                  Remove
+                </button>
+                <button
+                  onClick={() => setPostData(item)}
+                  className="btn btn-outline-primary"
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
+          </div>
+          )}
+        </div>
       </div>
     </div>
-  )
+  );
 }
-export default PostsList
+export default PostsList;
